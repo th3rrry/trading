@@ -10,21 +10,26 @@ document.addEventListener("DOMContentLoaded", () => {
     generateButton.addEventListener("click", () => {
         generateButton.disabled = true;
         generateButton.textContent = "Waiting...";
-
+        console.log("Button clicked, generating signal...");
+    
+        // Очистка предыдущих таймеров
         if (signalUpdateTimeout) clearTimeout(signalUpdateTimeout);
         if (candleUpdateInterval) clearInterval(candleUpdateInterval);
-
+    
+        // Очистка графика перед отрисовкой нового
+        resetChart(chartContainer);
+    
         signalUpdateTimeout = setTimeout(() => {
             generateButton.disabled = false;
             generateButton.textContent = "Get signal";
-
+    
             const currencyPair = document.getElementById("currency-pair").value;
             const timeframe = document.getElementById("timeframe").value.replace(/[^0-9]/g, '');
-
+    
             const isBuy = Math.random() > 0.5;
             const accuracy = (Math.random() * 10 + 85).toFixed(2);
             const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-
+    
             const language = document.getElementById("language").value;
             const signalDetails = `
                 <div class="signal-details">
@@ -38,11 +43,37 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             signalResult.innerHTML = signalDetails;
             signalTime.textContent = now;
-
-            renderChart(chartContainer, isBuy, parseInt(timeframe) * 60 * 1000);
-        }, 3000);
-    });
+    
+            // Проверка на корректные размеры контейнера
+            const width = chartContainer.clientWidth;
+            const height = chartContainer.clientHeight;
+            if (width > 0 && height > 0) {
+                renderChart(chartContainer, isBuy, parseInt(timeframe) * 60 * 1000);
+                console.log("Rendering chart with data:", { isBuy, timeframe });
+            } else {
+                console.error("Chart container dimensions are invalid:", { width, height });
+            }
+        }, 1000);
+    });    
 });
+
+function resetChart(container) {
+    container.innerHTML = ""; // Очистка графика
+    console.log("Chart cleared");
+}
+
+function resetSignalAndChart() {
+    const signalResult = document.getElementById("signal-result");
+    const signalTime = document.getElementById("signal-time");
+    const chartContainer = document.getElementById("chart");
+
+    // Очистить результаты сигнала
+    signalResult.innerHTML = `<div class="signal-placeholder">${translations[document.getElementById("language").value].signalPlaceholder}</div>`;
+    signalTime.textContent = "";
+
+    // Очистить график
+    resetChart(chartContainer);
+}
 
 const translations = {
     ru: {
@@ -95,6 +126,7 @@ const translations = {
 function changeLanguage() {
     const language = document.getElementById("language").value;
 
+    // Обновление текстов на странице
     const logoTextElement = document.getElementById("logo-text");
     if (logoTextElement) {
         logoTextElement.textContent = translations[language].logoText;
@@ -142,16 +174,35 @@ function changeLanguage() {
     const timeframes = translations[language].timeframes;
 
     timeframeSelect.innerHTML = "";
-
     timeframes.forEach(timeframe => {
         const option = document.createElement("option");
         option.textContent = timeframe;
         timeframeSelect.appendChild(option);
     });
+
+    // Сбросить состояние результатов сигнала и графика
+    resetSignalAndChart();
 }
+
+function resetSignalAndChart() {
+    const signalResult = document.getElementById("signal-result");
+    const signalTime = document.getElementById("signal-time");
+    const chartContainer = document.getElementById("chart");
+
+    // Очистить результаты сигнала
+    signalResult.innerHTML = `<div class="signal-placeholder">${translations[document.getElementById("language").value].signalPlaceholder}</div>`;
+    signalTime.textContent = "";
+
+    // Очистить график
+    chartContainer.innerHTML = "";
+}
+
+// Вызовите resetSignalAndChart() в функции changeLanguage, чтобы сбросить состояние
+
 
 
 function renderChart(container, isBuy, duration) {
+    // Сброс состояния
     container.innerHTML = "";
     const width = container.clientWidth;
     const height = container.clientHeight;
@@ -181,6 +232,8 @@ function renderChart(container, isBuy, duration) {
         return { time: i + 1, open, close, high, low };
     });
 
+    console.log("Generated candles data:", data); // Проверка данных
+
     const x = d3.scaleBand()
         .domain(data.map(d => d.time))
         .range([0, width - margin.left - margin.right])
@@ -196,13 +249,21 @@ function renderChart(container, isBuy, duration) {
 
     svg.append("g").call(d3.axisLeft(y));
 
+    // Убедитесь, что предыдущий интервал очищен
+    if (typeof candleUpdateInterval !== 'undefined') {
+        clearInterval(candleUpdateInterval);
+    }
+
     candleUpdateInterval = setInterval(() => {
         if (candlesDrawn >= totalCandles) {
             clearInterval(candleUpdateInterval);
+            console.log("All candles drawn!");
             return;
         }
 
         const d = data[candlesDrawn];
+        console.log("Drawing candle:", d); // Отладка текущей свечи
+
         const candle = svg.append("g")
             .attr("class", "candle")
             .attr("transform", `translate(${x(d.time) + x.bandwidth() / 2}, 0)`);
@@ -237,5 +298,7 @@ function renderChart(container, isBuy, duration) {
             .attr("height", Math.abs(y(d.open) - y(d.close)));
 
         candlesDrawn++;
+        console.log("Candles drawn so far:", candlesDrawn); // Отладка количества нарисованных свечей
     }, duration / totalCandles);
 }
+
