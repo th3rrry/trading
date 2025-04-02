@@ -9,14 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     generateButton.addEventListener("click", () => {
         generateButton.disabled = true;
-        generateButton.textContent = "Ожидайте...";
+        generateButton.textContent = "Waiting...";
 
         if (signalUpdateTimeout) clearTimeout(signalUpdateTimeout);
         if (candleUpdateInterval) clearInterval(candleUpdateInterval);
 
         signalUpdateTimeout = setTimeout(() => {
             generateButton.disabled = false;
-            generateButton.textContent = "Получить сигнал";
+            generateButton.textContent = "Get signal";
 
             const currencyPair = document.getElementById("currency-pair").value;
             const timeframe = document.getElementById("timeframe").value.replace(/[^0-9]/g, '');
@@ -49,7 +49,7 @@ const translations = {
         logoText: "Торговый сигнал",
         currencyLabel: "Инструмент",
         timeframeLabel: "Время",
-        generateButton: "Получить сигнал",
+        generateButton: "Get signal",
         signalTitle: "Сигнал",
         signalPlaceholder: "Нажмите 'Получить сигнал'",
         chartTitle: "Проанализированный график на валютную пару",
@@ -79,7 +79,7 @@ const translations = {
         logoText: "Savdo Signali",
         currencyLabel: "Asbob",
         timeframeLabel: "Vaqt",
-        generateButton: "Signal Olish",
+        generateButton: "Get signal",
         signalTitle: "Signal",
         signalPlaceholder: "Signal Olish uchun bosing",
         chartTitle: "Valyuta juftligi uchun tahlil qilingan diagramma",
@@ -95,14 +95,48 @@ const translations = {
 function changeLanguage() {
     const language = document.getElementById("language").value;
 
-    document.getElementById("logo-text").textContent = translations[language].logoText;
-    document.getElementById("currency-label").textContent = translations[language].currencyLabel;
-    document.getElementById("timeframe-label").textContent = translations[language].timeframeLabel;
-    document.getElementById("generate-btn").textContent = translations[language].generateButton;
-    document.getElementById("signal-title").textContent = translations[language].signalTitle;
-    document.getElementById("signal-result").querySelector(".signal-placeholder").textContent = translations[language].signalPlaceholder;
-    document.getElementById("chart-title").textContent = translations[language].chartTitle;
-    document.querySelector('.language-selector label').textContent = translations[language].languageLabel;
+    const logoTextElement = document.getElementById("logo-text");
+    if (logoTextElement) {
+        logoTextElement.textContent = translations[language].logoText;
+    }
+
+    const currencyLabelElement = document.getElementById("currency-label");
+    if (currencyLabelElement) {
+        currencyLabelElement.textContent = translations[language].currencyLabel;
+    }
+
+    const timeframeLabelElement = document.getElementById("timeframe-label");
+    if (timeframeLabelElement) {
+        timeframeLabelElement.textContent = translations[language].timeframeLabel;
+    }
+
+    const generateButtonElement = document.getElementById("generate-btn");
+    if (generateButtonElement) {
+        generateButtonElement.textContent = translations[language].generateButton;
+    }
+
+    const signalTitleElement = document.getElementById("signal-title");
+    if (signalTitleElement) {
+        signalTitleElement.textContent = translations[language].signalTitle;
+    }
+
+    const signalResultElement = document.getElementById("signal-result");
+    if (signalResultElement) {
+        const signalPlaceholderElement = signalResultElement.querySelector(".signal-placeholder");
+        if (signalPlaceholderElement) {
+            signalPlaceholderElement.textContent = translations[language].signalPlaceholder;
+        }
+    }
+
+    const chartTitleElement = document.getElementById("chart-title");
+    if (chartTitleElement) {
+        chartTitleElement.textContent = translations[language].chartTitle;
+    }
+
+    const languageLabelElement = document.querySelector('.language-selector label');
+    if (languageLabelElement) {
+        languageLabelElement.textContent = translations[language].languageLabel;
+    }
 
     const timeframeSelect = document.getElementById("timeframe");
     const timeframes = translations[language].timeframes;
@@ -115,6 +149,7 @@ function changeLanguage() {
         timeframeSelect.appendChild(option);
     });
 }
+
 
 function renderChart(container, isBuy, duration) {
     container.innerHTML = "";
